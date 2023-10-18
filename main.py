@@ -23,7 +23,7 @@ app = FastAPI()
 
 
 class Payload(BaseModel):
-    image_url: str
+    image_path: str
     prompt: str
 
 
@@ -66,15 +66,8 @@ async def start_session():
 @app.post("/action/")
 async def perform_action(payload: Payload):
     try:
-        # Download the image from the provided URL
-        response = requests.get(payload.image_url, stream=True)
-        response.raise_for_status()
-
-        # Extract image filename and save inside 'images' folder
-        image_filename = os.path.join("images", os.path.basename(payload.image_url))
-        with open(image_filename, "wb") as image_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                image_file.write(chunk)
+        # Use the local path directly
+        image_filename = payload.image_path
 
         # open new chat
         driver.get("https://chat.openai.com/?model=gpt-4")
@@ -117,9 +110,6 @@ async def perform_action(payload: Payload):
         final_resp = {"status": "Success", "result": {}}
         if answer:
             final_resp["result"] = json.loads(answer)
-
-        # Cleanup
-        os.remove(os.path.abspath(image_filename))
 
         return final_resp
 
