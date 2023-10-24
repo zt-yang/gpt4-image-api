@@ -1,17 +1,15 @@
-import os
-import requests
-import time
 import json
+import os
+import time
 
+import undetected_chromedriver as uc
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import undetected_chromedriver as uc
-
+from selenium.webdriver.support.ui import WebDriverWait
 
 load_dotenv()
 
@@ -126,4 +124,4 @@ async def stop_session():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8010)
