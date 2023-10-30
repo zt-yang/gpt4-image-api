@@ -23,7 +23,8 @@ app = FastAPI()
 
 
 class Payload(BaseModel):
-    image_url: str
+    image_path: str
+    # image_url: str
     prompt: str
 
 
@@ -69,7 +70,53 @@ async def start_session():
     return {"status": "Selenium session started!"}
 
 
-@app.post("/action/")
+def query(image_filename, prompt, new_session=False):
+
+    if new_session:
+        # open new chat
+        driver.get("https://chat.openai.com/?model=gpt-4")
+        time.sleep(5)
+
+    # Make the input file element visible
+    driver.execute_script(
+        'document.querySelector(\'input[type="file"]\').style.display = "block";'
+    )
+
+    # Send the local path of the downloaded image to the file input element
+    upload = driver.find_element(By.CSS_SELECTOR, 'input[type="file"]')
+    upload.send_keys(os.path.abspath(image_filename))
+
+    # Find prompt text area
+    prompt = driver.find_element(By.XPATH, '//textarea[@id="prompt-textarea"]')
+    prompt.send_keys(payload.prompt + ANSWER_FORMAT)
+
+    # Find the submit button data-testid="send-button
+    submit_button = driver.find_element(
+        By.XPATH, '//button[@data-testid="send-button"]'
+    )
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable(submit_button))
+    prompt.send_keys(Keys.ENTER)
+
+    # Wait the result
+    time.sleep(5)
+    regen_btn = (By.XPATH, "//div[contains(text(), 'Regenerate')]")
+    WebDriverWait(driver, 120).until(EC.presence_of_element_located(regen_btn))
+
+    # Get response
+    code_elements = driver.find_elements(By.TAG_NAME, "code")
+    answer = code_elements[-1].text.strip() if code_elements else None
+    if not answer:
+        answer_element = driver.find_element(
+            By.CSS_SELECTOR, ".markdown.prose.w-full.break-words"
+        )
+        answer = answer_element.text.strip()
+
+    final_resp = {"status": "Success", "result": {}}
+    if answer:
+        final_resp["result"] = json.loads(answer)
+
+
+@app.post("/url/")
 async def perform_action(payload: Payload):
     try:
         # Download the image from the provided URL
@@ -81,6 +128,38 @@ async def perform_action(payload: Payload):
         with open(image_filename, "wb") as image_file:
             for chunk in response.iter_content(chunk_size=8192):
                 image_file.write(chunk)
+
+        # Use the local path directly
+        image_filename = payload.image_path
+
+
+        
+
+        # # Cleanup
+        # os.remove(os.path.abspath(image_filename))
+
+        return final_resp
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/action/")
+async def perform_action(payload: Payload):
+    try:
+        # # Download the image from the provided URL
+        # response = requests.get(payload.image_url, stream=True)
+        # response.raise_for_status()
+
+        # # Extract image filename and save inside 'images' folder
+        # image_filename = os.path.join("images", os.path.basename(payload.image_url))
+        # with open(image_filename, "wb") as image_file:
+        #     for chunk in response.iter_content(chunk_size=8192):
+        #         image_file.write(chunk)
+
+        # Use the local path directly
+        image_filename = payload.image_path
+
 
         # open new chat
         driver.get("https://chat.openai.com/?model=gpt-4")
@@ -124,8 +203,8 @@ async def perform_action(payload: Payload):
         if answer:
             final_resp["result"] = json.loads(answer)
 
-        # Cleanup
-        os.remove(os.path.abspath(image_filename))
+        # # Cleanup
+        # os.remove(os.path.abspath(image_filename))
 
         return final_resp
 
