@@ -33,32 +33,38 @@ ANSWER_FORMAT = "Answer ONLY by JSON following this format: " '{"answer": your a
 @app.get("/start")
 async def start_session():
     driver.get("https://chat.openai.com/")
-    time.sleep(3)
+    time.sleep(4)
+
     login_button = driver.find_element(By.XPATH, '//div[text()="Log in"]')
     login_button.click()
-    time.sleep(3)
+    time.sleep(4)
+
     google = driver.find_element(By.XPATH, '//button[@data-provider="google"]')
     google.click()
+    time.sleep(4)
+
     # find email field
-    time.sleep(3)
     email = driver.find_element(By.XPATH, '//input[@type="email"]')
     email.send_keys(os.getenv("GOOGLE_EMAIL"))
     # Find next button
     next_button = driver.find_element(By.XPATH, '//span[text()="Next"]')
     next_button.click()
-    time.sleep(3)
+    time.sleep(20)
+
     # Find password field
     password = driver.find_element(By.XPATH, '//input[@type="password"]')
     password.send_keys(os.getenv("GOOGLE_PASSWORD"))
     # Find next button
     next_button = driver.find_element(By.XPATH, '//span[text()="Next"]')
     next_button.click()
-    time.sleep(3)
+    time.sleep(4)
+
     # Wait for user to validate login
     input("Press Enter to continue...")
     # Find the Okay, let’s go button
     okay_button = driver.find_element(By.XPATH, '//div[text()="Okay, let’s go"]')
     okay_button.click()
+
     # Setup OK
     return {"status": "Selenium session started!"}
 
