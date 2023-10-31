@@ -21,12 +21,13 @@ app = FastAPI()
 
 
 class Payload(BaseModel):
-    image_path: str
     prompt: str
+    image_path: str
     continue_chat: bool = False
 
 
 ANSWER_FORMAT = "Answer ONLY by JSON following this format: " '{"answer": your answer}'
+PORT_NUMBER = 8000
 
 
 @app.get("/start")
@@ -126,4 +127,4 @@ async def stop_session():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8010)
+    uvicorn.run(app, host="0.0.0.0", port=PORT_NUMBER)
