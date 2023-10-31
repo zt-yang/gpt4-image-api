@@ -45,7 +45,12 @@ Stop the current session.
 
 ## POST
 `https://0.0.0.0:8000/action/`  
-Post a local image path with a prompt, or continue the conversation without an image, or continue the conversation with a new image. Example:  
+Post a local image path with a prompt, or continue the conversation without image, or continue the conversation with a new image. Example:  
+
+`images/observation_0.jpg`            |  `images/observation_29.jpg`  
+:-------------------------:|:-------------------------:
+![First image](images/observation_0.jpg)  |  ![Second image](images/observation_29.jpg) 
+
 
 ```
 Request:
