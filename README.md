@@ -7,7 +7,7 @@ Works with google authentification. If you use a different login method, please 
 
 # Requirements
 
-- Chrome version is 118.xx.xx 
+- Chrome version is 118.xx.xx (if you want to update the chrome version on Ubuntu, download the .deb file and run `sudo dpkg -i google-chrome-stable_current_amd64.deb`)
 - A paid OpenAI API associated with a Google account
 
 # Installation
@@ -28,8 +28,9 @@ GOOGLE_PASSWORD={PASSWORD}
 - Open another Chrome window and go to https://0.0.0.0:8000/start
 - In the first Chrome window, you'll see ChatGPT being automaticly logged in. Manually click "Ok, let's go"
 - In the first terminal window, press ENTER
-- Ran example queries in another terminal window
+- Run example queries in another terminal window
 `python query.py`
+- Or try multiple queries in Jupyter notebook `query.ipynb`
 
 
 # Endpoints
@@ -44,19 +45,49 @@ Stop the current session.
 
 ## POST
 `https://0.0.0.0:8000/action/`  
-Post an image URL with a prompt. Example:  
+Post a local image path with a prompt, or continue the conversation without an image, or continue the conversation with a new image. Example:  
+
 ```
 Request:
 {
-    "image_url": "https://www.reuters.com/resizer/NLk9k89J1tfmH-B7XKd598-6j_Y=/960x0/filters:quality(80)/cloudfront-us-east-2.images.arcpublishing.com/reuters/AHF2FYISNJO55J6N35YJBZ2JYY.jpg",
-    "prompt": "Describe this image precisely."
+    "image_path": "images/observation_0.jpg",
+    "prompt": "Describe in a list all objects in this image.",
+    "continue_chat": False
 }
 
 Response:
 {
     "status": "Success",
     "result": {
-        "answer": "A night view of the Eiffel Tower illuminated, with its reflection visible in calm water in the foreground. The sky is dark blue, and there are two streetlights on either side of the scene."
+        "answer": ['wall cabinet', 'shelf', 'stove', 'tea kettle', 'microwave', 'trash can', 'refrigerator', 'spice container', 'salt shaker', 'bottle', 'dishwashing liquid', 'vase', 'plant']
+    }
+}
+Request:
+{
+    "image_path": "None",
+    "prompt": "Is the door of the refrigerator open?",
+    "continue_chat": True
+}
+
+Response:
+{
+    "status": "Success",
+    "result": {
+        "answer": "no"
+    }
+}
+Request:
+{
+    "image_path": "images/observation_29.jpg",
+    "prompt": "Is the door of the refrigerator open?",
+    "continue_chat": True
+}
+
+Response:
+{
+    "status": "Success",
+    "result": {
+        "answer": "yes"
     }
 }
 ```

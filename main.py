@@ -22,40 +22,47 @@ app = FastAPI()
 
 class Payload(BaseModel):
     prompt: str
-    image_path: str
+    image_path: str = "None"
     continue_chat: bool = False
 
 
 ANSWER_FORMAT = "Answer ONLY by JSON following this format: " '{"answer": your answer}'
 PORT_NUMBER = 8000
+WAIT_TIME = 1
 
 
 @app.get("/start")
 async def start_session():
     driver.get("https://chat.openai.com/")
-    time.sleep(3)
+    # time.sleep(WAIT_TIME)
+
     login_button = driver.find_element(By.XPATH, '//div[text()="Log in"]')
     login_button.click()
-    time.sleep(3)
+    time.sleep(WAIT_TIME)
+
     google = driver.find_element(By.XPATH, '//button[@data-provider="google"]')
     google.click()
+    time.sleep(WAIT_TIME)
+
     # find email field
-    time.sleep(3)
     email = driver.find_element(By.XPATH, '//input[@type="email"]')
     email.send_keys(os.getenv("GOOGLE_EMAIL"))
     # Find next button
     next_button = driver.find_element(By.XPATH, '//span[text()="Next"]')
     next_button.click()
-    time.sleep(3)
+    time.sleep(WAIT_TIME*2)
+
     # Find password field
     password = driver.find_element(By.XPATH, '//input[@type="password"]')
     password.send_keys(os.getenv("GOOGLE_PASSWORD"))
     # Find next button
     next_button = driver.find_element(By.XPATH, '//span[text()="Next"]')
     next_button.click()
-    time.sleep(3)
+    time.sleep(WAIT_TIME*2)
+
     # Wait for user to validate login
     input("Press Enter to continue...")
+
     # Find the Okay, let’s go button
     okay_button = driver.find_element(By.XPATH, '//div[text()="Okay, let’s go"]')
     okay_button.click()
@@ -72,16 +79,22 @@ async def perform_action(payload: Payload):
         # open new chat
         if not payload.continue_chat:
             driver.get("https://chat.openai.com/?model=gpt-4")
-            time.sleep(5)
+            time.sleep(WAIT_TIME*2)
 
         # Make the input file element visible
         driver.execute_script(
             'document.querySelector(\'input[type="file"]\').style.display = "block";'
         )
-
         # Send the local path of the downloaded image to the file input element
         upload = driver.find_element(By.CSS_SELECTOR, 'input[type="file"]')
-        upload.send_keys(os.path.abspath(image_filename))
+
+        # upload image
+        if image_filename != "None":
+            upload.send_keys(os.path.abspath(image_filename))
+        
+        # else, remove the previously uploaded image from the next input
+        else:
+            driver.execute_script("arguments[0].value = '';", upload)
 
         # Find prompt text area
         prompt = driver.find_element(By.XPATH, '//textarea[@id="prompt-textarea"]')
@@ -93,20 +106,21 @@ async def perform_action(payload: Payload):
         )
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable(submit_button))
         prompt.send_keys(Keys.ENTER)
+        time.sleep(WAIT_TIME*2)
 
         # Wait the result
-        time.sleep(5)
         regen_btn = (By.XPATH, "//div[contains(text(), 'Regenerate')]")
         WebDriverWait(driver, 120).until(EC.presence_of_element_located(regen_btn))
 
         # Get response
         code_elements = driver.find_elements(By.TAG_NAME, "code")
+
         answer = code_elements[-1].text.strip() if code_elements else None
         if not answer:
-            answer_element = driver.find_element(
+            answer_elements = driver.find_elements(
                 By.CSS_SELECTOR, ".markdown.prose.w-full.break-words"
             )
-            answer = answer_element.text.strip()
+            answer = answer_elements[-1].text.strip()
 
         final_resp = {"status": "Success", "result": {}}
         if answer:
