@@ -33,7 +33,7 @@ WAIT_TIME = 1
 
 @app.get("/start")
 async def start_session():
-    driver.get("https://chat.openai.com/")
+    driver.get("https://chat.openai.com/?model=gpt-4")
     # time.sleep(WAIT_TIME)
 
     login_button = driver.find_element(By.XPATH, '//div[text()="Log in"]')
@@ -91,7 +91,7 @@ async def perform_action(payload: Payload):
         # upload image
         if image_filename != "None":
             upload.send_keys(os.path.abspath(image_filename))
-        
+
         # else, remove the previously uploaded image from the next input
         else:
             driver.execute_script("arguments[0].value = '';", upload)
