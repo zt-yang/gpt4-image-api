@@ -3,3 +3,5 @@ __pycache__/
 .env
 .python-version
 images/
+.ipynb_checkpoints/
+tags
